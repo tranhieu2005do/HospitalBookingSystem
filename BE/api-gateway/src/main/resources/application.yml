@@ -10,8 +10,12 @@ spring:
       port: 6379
   cloud:
     gateway:
-      default-filters: 
-        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials, RETAIN_UNIQUE
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            redis-rate-limiter.replenishRate: 10 # mỗi giây cấp 10 token
+            redis-rate-limiter.burstCapacity: 20 # tích lũy tối đa 20 token
+            redis-rate-limiter.requestedTokens: 1 # mỗi request tốn 1 token
       routes:
         - id: booking-service
           uri: http://localhost:8081
