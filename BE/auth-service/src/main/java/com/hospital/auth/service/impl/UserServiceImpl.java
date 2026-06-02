@@ -1,0 +1,85 @@
+package com.hospital.auth.service.impl;
+
+import com.hospital.auth.dto.request.CreateDoctorRequest;
+import com.hospital.auth.dto.response.UserResponse;
+import com.hospital.auth.entity.User;
+import com.hospital.auth.entity.enums.Role;
+import com.hospital.auth.entity.enums.UserStatus;
+import com.hospital.auth.exception.DuplicateUserException;
+import com.hospital.auth.exception.UserCreationException;
+import com.hospital.auth.repository.UserRepository;
+import com.hospital.auth.service.FirebaseService;
+import com.hospital.auth.service.UserService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class UserServiceImpl implements UserService {
+
+    private final UserRepository userRepository;
+    private final FirebaseService firebaseService;
+
+    @Override
+    @Transactional
+    public UserResponse createDoctor(CreateDoctorRequest request) {
+        log.info("Doctor creation started for email: {}", request.getEmail());
+
+        if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Email {} already exists in local database", request.getEmail());
+            throw new DuplicateUserException("User with email " + request.getEmail() + " already exists locally");
+        }
+
+        if (firebaseService.getUserByEmail(request.getEmail()).isPresent()) {
+            log.warn("Email {} already exists in Firebase", request.getEmail());
+            throw new DuplicateUserException("User with email " + request.getEmail() + " already exists in Firebase");
+        }
+
+        String firebaseUid = null;
+        try {
+            firebaseUid = firebaseService.createUser(request.getEmail(), request.getPassword());
+            log.info("Firebase user created with UID: {}", firebaseUid);
+
+            firebaseService.setRoleClaim(firebaseUid, Role.DOCTOR);
+            log.info("Firebase claims assigned for UID: {}", firebaseUid);
+
+            User user = User.builder()
+                    .firebaseUid(firebaseUid)
+                    .email(request.getEmail())
+                    .role(Role.DOCTOR)
+                    .status(UserStatus.ACTIVE)
+                    .build();
+
+            User savedUser = userRepository.saveAndFlush(user);
+            log.info("Local user persisted with ID: {}", savedUser.getId());
+
+            UserResponse response = UserResponse.builder()
+                    .id(savedUser.getId())
+                    .firebaseUid(savedUser.getFirebaseUid())
+                    .email(savedUser.getEmail())
+                    .role(savedUser.getRole())
+                    .status(savedUser.getStatus())
+                    .build();
+
+            log.info("Doctor creation completed for email: {}", request.getEmail());
+            return response;
+
+        } catch (Exception e) {
+            log.error("An error occurred during doctor creation for email: {}", request.getEmail(), e);
+
+            if (firebaseUid != null) {
+                log.info("Executing compensation logic: Rolling back Firebase user with UID: {}", firebaseUid);
+                firebaseService.deleteUser(firebaseUid);
+                log.info("Rollback executed for UID: {}", firebaseUid);
+            }
+
+            if (e instanceof RuntimeException) {
+                throw (RuntimeException) e;
+            }
+            throw new UserCreationException("Failed to create doctor", e);
+        }
+    }
+}
