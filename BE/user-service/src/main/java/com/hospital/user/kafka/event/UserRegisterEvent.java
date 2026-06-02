@@ -1,20 +1,22 @@
-package com.hospital.auth.kafka.event;
+package com.hospital.user.kafka.event;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserRegisteredEvent {
+public class UserRegisterEvent {
     private String firebaseUid;
+    private String fullName;
     private String email;
     private String address;
     private String phone;
-    private String dateOfBirth;
+    private LocalDate dateOfBirth;
     private String gender;
-    private String fullName;
 }
