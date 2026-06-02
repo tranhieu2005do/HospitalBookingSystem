@@ -1,7 +1,0 @@
-com\hospital\auth\entity\User$UserBuilder.class
-com\hospital\auth\config\JpaAuditingConfig.class
-com\hospital\auth\entity\enums\Role.class
-com\hospital\auth\AuthServiceApplication.class
-com\hospital\auth\entity\enums\UserStatus.class
-com\hospital\auth\entity\User.class
-com\hospital\auth\common\entity\BaseEntity.class
