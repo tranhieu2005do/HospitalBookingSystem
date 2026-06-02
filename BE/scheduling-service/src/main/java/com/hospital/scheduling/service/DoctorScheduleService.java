@@ -6,4 +6,6 @@ import com.hospital.scheduling.dto.response.CreatedDoctorScheduleResponse;
 public interface DoctorScheduleService {
 
     CreatedDoctorScheduleResponse create(CreatedDoctorScheduleRequest request);
+
+    void cancelDoctorSchedule(Long doctorScheduleId);
 }
