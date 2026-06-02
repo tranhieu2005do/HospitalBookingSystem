@@ -1,5 +1,6 @@
 package com.hospital.scheduling.service.impl;
 
+import com.hospital.scheduling.dto.request.CreatedSlotHoldRequest;
 import com.hospital.scheduling.entity.TimeSlot;
 import com.hospital.scheduling.enums.SlotStatus;
 import com.hospital.scheduling.exception.NotFoundException;
@@ -10,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,6 +23,7 @@ import java.util.Optional;
 public class TimeSlotImpl implements TimeSlotService {
 
     private final TimeSlotRepo  timeSlotRepo;
+    private final SlotHoldImpl slotHoldImpl;
 
     @Override
     public void genTimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime, Long doctorId) {
@@ -94,7 +97,7 @@ public class TimeSlotImpl implements TimeSlotService {
     }
 
     @Override
-    public void pickSlot(Long timeSlotId) {
+    public void pickSlot(Long timeSlotId, Long patientId) {
         log.info("Picking slot with id={}", timeSlotId);
         Optional<TimeSlot> optional = timeSlotRepo.findById(timeSlotId);
         if(!optional.isPresent()){
@@ -103,6 +106,12 @@ public class TimeSlotImpl implements TimeSlotService {
         }
         optional.get().setStatus(SlotStatus.HOLD);
         timeSlotRepo.save(optional.get());
+
+        slotHoldImpl.create(new CreatedSlotHoldRequest(
+                timeSlotId,
+                patientId,
+                LocalDateTime.now().plusMinutes(5)
+        ));
     }
 
 

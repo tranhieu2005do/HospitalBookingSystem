@@ -11,5 +11,5 @@ public interface TimeSlotService {
 
     void blockTimeSlot(Long id);
 
-    void pickSlot(Long timeSlotId);
+    void pickSlot(Long timeSlotId,  Long patientId);
 }

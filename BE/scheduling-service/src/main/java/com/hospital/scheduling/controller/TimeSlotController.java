@@ -24,7 +24,8 @@ public class TimeSlotController {
     public ResponseEntity<Void> pickTimeSlot(
             @RequestParam Long id
     ){
-        timeSlotService.pickSlot(id);
+        Long patientId = null;
+        timeSlotService.pickSlot(id, patientId);
         return ResponseEntity.ok().build();
     }
 }
