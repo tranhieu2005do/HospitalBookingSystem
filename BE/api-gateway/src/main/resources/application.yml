@@ -28,8 +28,8 @@ spring:
         - id: schedule-service
           uri: http://localhost:8083
           predicates:
-            - Path=/api/v1/schedule/**
-        - id: schedule-service
+            - Path=/api/v1/schedule/**,/api/v1/time-slot/**
+        - id: booking-service
           uri: http://localhost:8084
           predicates:
             - Path=/api/schedules/**

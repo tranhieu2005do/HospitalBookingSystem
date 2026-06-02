@@ -12,7 +12,7 @@ public class CreatedSlotHoldRequest {
 
     private Long slotId;
 
-    private Long patientId;
+    private String patientId;
 
     private LocalDateTime expiresAt;
 }

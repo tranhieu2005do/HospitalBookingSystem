@@ -24,7 +24,7 @@ public class SlotHold extends BaseEntity {
     private Long slotId;
 
     @Column(name = "patient_id", nullable = false, length = 128)
-    private Long patientId;
+    private String patientId;
 
     @Column(name = "expires_at", nullable = false)
     private LocalDateTime expiresAt;

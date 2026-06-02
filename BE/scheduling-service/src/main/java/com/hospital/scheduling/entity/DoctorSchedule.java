@@ -20,7 +20,7 @@ public class DoctorSchedule extends BaseEntity {
     private Long id;
 
     @Column(name = "doctor_id", nullable = false, length = 128)
-    private Long doctorId;
+    private String doctorId;
 
     @Column(name = "day_of_week", nullable = false, length = 20)
     private String dayOfWeek;
