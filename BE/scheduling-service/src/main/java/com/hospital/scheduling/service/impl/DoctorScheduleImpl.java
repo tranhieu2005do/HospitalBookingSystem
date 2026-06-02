@@ -7,6 +7,7 @@ import com.hospital.scheduling.entity.DoctorSchedule;
 import com.hospital.scheduling.exception.NotFoundException;
 import com.hospital.scheduling.repository.DoctorScheduleRepo;
 import com.hospital.scheduling.service.DoctorScheduleService;
+import com.hospital.scheduling.service.TimeSlotService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -19,6 +20,7 @@ import java.util.Optional;
 public class DoctorScheduleImpl implements DoctorScheduleService {
 
     private final DoctorScheduleRepo  doctorScheduleRepo;
+    private final TimeSlotService timeSlotService;
 
     @Override
     public CreatedDoctorScheduleResponse create(CreatedDoctorScheduleRequest request) {
