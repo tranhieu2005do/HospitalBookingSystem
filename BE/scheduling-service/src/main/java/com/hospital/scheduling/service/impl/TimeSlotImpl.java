@@ -73,7 +73,8 @@ public class TimeSlotImpl implements TimeSlotService {
                 .toList();
         for(TimeSlot slot : filtered){
             if(!slots.contains(slot)){
-                timeSlotRepo.delete(slot);
+                slot.setStatus(SlotStatus.CANCELLED);
+                timeSlotRepo.save(slot);
             }
             slot.setVersion(2L);
         }
@@ -89,6 +90,18 @@ public class TimeSlotImpl implements TimeSlotService {
             throw new NotFoundException("TimeSlot with id=" + id + " not found");
         }
         optional.get().setStatus(SlotStatus.BLOCKED);
+        timeSlotRepo.save(optional.get());
+    }
+
+    @Override
+    public void pickSlot(Long timeSlotId) {
+        log.info("Picking slot with id={}", timeSlotId);
+        Optional<TimeSlot> optional = timeSlotRepo.findById(timeSlotId);
+        if(!optional.isPresent()){
+            log.error("TimeSlot with id={} not found", timeSlotId);
+            throw new NotFoundException("TimeSlot with id=" + timeSlotId + " not found");
+        }
+        optional.get().setStatus(SlotStatus.HOLD);
         timeSlotRepo.save(optional.get());
     }
 

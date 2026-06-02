@@ -10,4 +10,6 @@ public interface TimeSlotService {
     void reGenTimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime, Long doctorId);
 
     void blockTimeSlot(Long id);
+
+    void pickSlot(Long timeSlotId);
 }

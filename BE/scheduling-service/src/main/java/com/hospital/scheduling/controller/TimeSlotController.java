@@ -3,10 +3,7 @@ package com.hospital.scheduling.controller;
 import com.hospital.scheduling.service.TimeSlotService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -15,11 +12,19 @@ public class TimeSlotController {
 
     private final TimeSlotService  timeSlotService;
 
-    @PatchMapping("/id")
+    @PatchMapping("/block")
     public ResponseEntity<Void> blockTimeSlot(
-            @PathVariable Long id
+            @RequestParam Long id
     ){
         timeSlotService.blockTimeSlot(id);
+        return ResponseEntity.ok().build();
+    }
+
+    @PatchMapping("/pick")
+    public ResponseEntity<Void> pickTimeSlot(
+            @RequestParam Long id
+    ){
+        timeSlotService.pickSlot(id);
         return ResponseEntity.ok().build();
     }
 }
