@@ -20,7 +20,6 @@ public class FirebaseServiceImpl implements FirebaseService {
     @Override
     public String createUser(String email, String password) {
         try {
-            log.info("Creating doctor with email: {}, password {}", email, password);;
             UserRecord.CreateRequest request = new UserRecord.CreateRequest()
                     .setEmail(email)
                     .setPassword(password);
@@ -37,7 +36,6 @@ public class FirebaseServiceImpl implements FirebaseService {
     @Override
     public void deleteUser(String firebaseUid) {
         try {
-            log.info("Deleting user with UID: {}", firebaseUid);
             FirebaseAuth.getInstance().deleteUser(firebaseUid);
             log.info("Successfully deleted user from Firebase with UID: {}", firebaseUid);
         } catch (FirebaseAuthException e) {

@@ -6,6 +6,7 @@ import com.hospital.auth.entity.User;
 import com.hospital.auth.entity.enums.Role;
 import com.hospital.auth.entity.enums.UserStatus;
 import com.hospital.auth.exception.DuplicateUserException;
+import com.hospital.auth.exception.NotFoundException;
 import com.hospital.auth.exception.UserCreationException;
 import com.hospital.auth.repository.UserRepository;
 import com.hospital.auth.service.FirebaseService;
@@ -14,6 +15,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Slf4j
 @Service
@@ -82,4 +85,41 @@ public class UserServiceImpl implements UserService {
             throw new UserCreationException("Failed to create doctor", e);
         }
     }
+
+    @Override
+    public void setRoleAdmin(String firbaseUid, Role role){
+        log.info("Role admin started for user with id: {}", firbaseUid);
+
+        // Set claim role in firebase
+        firebaseService.setRoleClaim(firbaseUid, role);
+
+        //Set role admin in database
+        Optional<User> user =  userRepository.findByFirebaseUid(firbaseUid);
+        if(!user.isPresent()){
+            log.warn("User with firebase id {} not found", firbaseUid);
+            throw new NotFoundException("User with firebase id " + firbaseUid);
+        }
+        user.get().setRole(role);
+        userRepository.save(user.get());
+        log.info("Successfully set role admin for user with id: {}", firbaseUid);
+    }
+
+    @Override
+    public void deleteUser(String firebaseUid) {
+        log.info("Deleting user with ID: {}", firebaseUid);
+
+        // delete user in firebase
+        firebaseService.deleteUser(firebaseUid);
+
+        //delete user in database
+        Optional<User> user =  userRepository.findByFirebaseUid(firebaseUid);
+        if(!user.isPresent()){
+            log.warn("User with firebase id {} not found in database", firebaseUid);
+            throw new NotFoundException("User with firebase id " + firebaseUid);
+        }
+        userRepository.delete(user.get());
+        log.info("Successfully deleted user with ID: {}", firebaseUid);
+    }
+
+
 }

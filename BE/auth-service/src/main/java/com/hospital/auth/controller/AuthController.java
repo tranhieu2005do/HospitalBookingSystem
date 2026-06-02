@@ -29,7 +29,15 @@ public class AuthController {
             @PathVariable String firebaseUid,
             @RequestParam Role role
     ){
-        firebaseService.setRoleClaim(firebaseUid, role);
+        userService.setRoleAdmin(firebaseUid, role);
+        return ResponseEntity.ok().build();
+    }
+
+    @DeleteMapping("/user/{firebaseUid}")
+    public ResponseEntity<Void> deleteUser(
+            @PathVariable String firebaseUid
+    ){
+        userService.deleteUser(firebaseUid);
         return ResponseEntity.ok().build();
     }
 
