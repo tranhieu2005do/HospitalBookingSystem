@@ -1,6 +1,7 @@
 package com.hospital.scheduling.service.impl;
 
 import com.hospital.scheduling.dto.request.CreatedDoctorScheduleRequest;
+import com.hospital.scheduling.dto.request.UpdateScheduleRequest;
 import com.hospital.scheduling.dto.response.CreatedDoctorScheduleResponse;
 import com.hospital.scheduling.entity.DoctorSchedule;
 import com.hospital.scheduling.exception.NotFoundException;
@@ -42,6 +43,20 @@ public class DoctorScheduleImpl implements DoctorScheduleService {
             throw new NotFoundException("Not found schedule with id " + doctorScheduleId);
         }
         schedule.get().setIsActive(false);
+        doctorScheduleRepo.save(schedule.get());
+    }
+
+    @Override
+    public void updateDoctorSchedule(Long doctorScheduleId, UpdateScheduleRequest request) {
+        log.info("Updating schedule with id {}",  doctorScheduleId);
+        Optional<DoctorSchedule> schedule = doctorScheduleRepo.findById(doctorScheduleId);
+        if(!schedule.isPresent()){
+            log.warn("Not found schedule with id {}" , doctorScheduleId);
+            throw new NotFoundException("Not found schedule with id " + doctorScheduleId);
+        }
+        schedule.get().setStartTime(request.getStartTime());
+        schedule.get().setEndTime(request.getEndTime());
+        schedule.get().setIsActive(true);
         doctorScheduleRepo.save(schedule.get());
     }
 }
