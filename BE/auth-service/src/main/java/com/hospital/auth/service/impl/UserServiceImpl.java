@@ -3,13 +3,17 @@ package com.hospital.auth.service.impl;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.UserRecord;
 import com.hospital.auth.dto.request.CreateDoctorRequest;
+import com.hospital.auth.dto.request.RegisterRequest;
 import com.hospital.auth.dto.response.UserResponse;
 import com.hospital.auth.entity.User;
 import com.hospital.auth.entity.enums.Role;
 import com.hospital.auth.entity.enums.UserStatus;
+import com.hospital.auth.kafka.event.CreatedDoctorEvent;
+import com.hospital.auth.kafka.event.UserRegisteredEvent;
 import com.hospital.auth.exception.DuplicateUserException;
 import com.hospital.auth.exception.NotFoundException;
 import com.hospital.auth.exception.UserCreationException;
+import com.hospital.auth.kafka.producer.UserEventProducer;
 import com.hospital.auth.repository.UserRepository;
 import com.hospital.auth.service.FirebaseService;
 import com.hospital.auth.service.UserService;
@@ -27,6 +31,7 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final FirebaseService firebaseService;
+    private final UserEventProducer userEventProducer;
 
     @Override
     @Transactional
@@ -70,6 +75,18 @@ public class UserServiceImpl implements UserService {
                     .build();
 
             log.info("Doctor creation completed for email: {}", request.getEmail());
+            userEventProducer.publish(
+                    "doctor-created-topic",
+                    user.getFirebaseUid(),
+                    CreatedDoctorEvent.builder()
+                            .firebaseUid(firebaseUid)
+                            .email(request.getEmail())
+                            .bio(request.getBio())
+                            .experience_years(request.getExperience_years())
+                            .roomId(request.getRoom_id())
+                            .specialization(request.getSpecialization())
+                            .build()
+            );
             return response;
 
         } catch (Exception e) {
@@ -89,15 +106,15 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public void setRoleAdmin(String firbaseUid, Role role){
+    public void setRoleAdmin(String firbaseUid, Role role) {
         log.info("Role admin started for user with id: {}", firbaseUid);
 
         // Set claim role in firebase
         firebaseService.setRoleClaim(firbaseUid, role);
 
-        //Set role admin in database
-        Optional<User> user =  userRepository.findByFirebaseUid(firbaseUid);
-        if(!user.isPresent()){
+        // Set role admin in database
+        Optional<User> user = userRepository.findByFirebaseUid(firbaseUid);
+        if (!user.isPresent()) {
             log.warn("User with firebase id {} not found", firbaseUid);
             throw new NotFoundException("User with firebase id " + firbaseUid);
         }
@@ -113,9 +130,9 @@ public class UserServiceImpl implements UserService {
         // delete user in firebase
         firebaseService.deleteUser(firebaseUid);
 
-        //delete user in database
-        Optional<User> user =  userRepository.findByFirebaseUid(firebaseUid);
-        if(!user.isPresent()){
+        // delete user in database
+        Optional<User> user = userRepository.findByFirebaseUid(firebaseUid);
+        if (!user.isPresent()) {
             log.warn("User with firebase id {} not found in database", firebaseUid);
             throw new NotFoundException("User with firebase id " + firebaseUid);
         }
@@ -125,37 +142,48 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Transactional
-    public UserResponse registerUser(String email) {
-        log.info("Creating user with email: {}", email);
-        if (userRepository.existsByEmail(email)) {
-            log.warn("Email {} already exists in local database", email);
-            throw new DuplicateUserException("User with email " + email + " already exists in locally");
+    public UserResponse registerUser(RegisterRequest request) {
+        log.info("Creating user with email: {}", request.getEmail());
+        if (userRepository.existsByEmail(request.getEmail())) {
+            log.warn("Email {} already exists in local database", request.getEmail());
+            throw new DuplicateUserException("User with email " + request.getEmail() + " already exists in locally");
         }
 
         User newUser = User.builder()
-                .email(email)
+                .email(request.getEmail())
                 .role(Role.PATIENT)
                 .status(UserStatus.ACTIVE)
                 .build();
-        try{
-        UserRecord firebaseUser = FirebaseAuth.getInstance().getUserByEmail(email);
-        if (firebaseUser == null) {
-            log.warn("User with email {} not found in firebase authentication", email);
-            throw  new NotFoundException("User with email " + email + " not found in firebase authentication");
-        }
-        newUser.setFirebaseUid(firebaseUser.getUid());
-        userRepository.save(newUser);
-        return UserResponse.builder()
-                .id(newUser.getId())
-                .firebaseUid(firebaseUser.getUid())
-                .email(newUser.getEmail())
-                .role(newUser.getRole())
-                .status(newUser.getStatus())
-                .build();
-        } catch(Exception e){
-            log.info("Executing compensation logic: Rolling back Firebase user email: {}", email);
-            firebaseService.deleteUser(email);
-            throw new  UserCreationException("Failed to create user", e);
+        try {
+            UserRecord firebaseUser = FirebaseAuth.getInstance().getUserByEmail(request.getEmail());
+            if (firebaseUser == null) {
+                log.warn("User with email {} not found in firebase authentication", request.getEmail());
+                throw new NotFoundException(
+                        "User with email " + request.getEmail() + " not found in firebase authentication");
+            }
+            newUser.setFirebaseUid(firebaseUser.getUid());
+            userRepository.save(newUser);
+            
+            userEventProducer.publish(
+                    "user-created-topic",
+                    newUser.getFirebaseUid(),
+                    UserRegisteredEvent.builder()
+                            .firebaseUid(firebaseUser.getUid())
+                            .email(newUser.getEmail())
+                            .build()
+            );
+
+            return UserResponse.builder()
+                    .id(newUser.getId())
+                    .firebaseUid(firebaseUser.getUid())
+                    .email(newUser.getEmail())
+                    .role(newUser.getRole())
+                    .status(newUser.getStatus())
+                    .build();
+        } catch (Exception e) {
+            log.info("Executing compensation logic: Rolling back Firebase user email: {}", request.getEmail());
+            firebaseService.deleteUser(request.getEmail());
+            throw new UserCreationException("Failed to create user", e);
         }
     }
 
