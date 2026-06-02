@@ -31,4 +31,13 @@ public class UserProfileImpl implements UserProfileService {
         userProfileRepo.save(newProfile);
         return UserProfileResponse.fromEntity(newProfile);
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public UserProfileResponse getUserProfile(String firebaseUid) {
+        UserProfile userProfile = userProfileRepo.findByFirebaseUid(firebaseUid)
+                .orElseThrow(() -> new com.hospital.user.exception.UserNotFoundException("User profile not found for firebaseUid: " + firebaseUid));
+
+        return UserProfileResponse.fromEntity(userProfile);
+    }
 }

@@ -6,4 +6,5 @@ import com.hospital.user.kafka.event.UserRegisterEvent;
 public interface UserProfileService {
 
     UserProfileResponse createProfile(UserRegisterEvent event);
+    UserProfileResponse getUserProfile(String firebaseUid);
 }

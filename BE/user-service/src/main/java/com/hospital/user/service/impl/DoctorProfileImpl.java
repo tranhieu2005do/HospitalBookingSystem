@@ -29,4 +29,13 @@ public class DoctorProfileImpl implements DoctorProfileService {
         doctorProfileRepo.save(doctorProfile);
         return DoctorResponse.fromEntity(doctorProfile);
     }
+
+    @Override
+    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    public DoctorResponse getDoctorProfile(String firebaseUid) {
+        DoctorProfile doctorProfile = doctorProfileRepo.findByFirebaseUid(firebaseUid)
+                .orElseThrow(() -> new com.hospital.user.exception.DoctorNotFoundException("Doctor profile not found for firebaseUid: " + firebaseUid));
+
+        return DoctorResponse.fromEntity(doctorProfile);
+    }
 }
