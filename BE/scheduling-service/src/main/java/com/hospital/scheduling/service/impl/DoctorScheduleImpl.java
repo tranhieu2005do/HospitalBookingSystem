@@ -1,13 +1,17 @@
 package com.hospital.scheduling.service.impl;
 
 import com.hospital.scheduling.dto.request.CreatedDoctorScheduleRequest;
+import com.hospital.scheduling.dto.request.UpdateScheduleRequest;
 import com.hospital.scheduling.dto.response.CreatedDoctorScheduleResponse;
 import com.hospital.scheduling.entity.DoctorSchedule;
+import com.hospital.scheduling.exception.NotFoundException;
 import com.hospital.scheduling.repository.DoctorScheduleRepo;
 import com.hospital.scheduling.service.DoctorScheduleService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -28,5 +32,31 @@ public class DoctorScheduleImpl implements DoctorScheduleService {
                 .build();
         doctorScheduleRepo.save(doctorSchedule);
         return null;
+    }
+
+    @Override
+    public void cancelDoctorSchedule(Long doctorScheduleId) {
+        log.info("DoctorScheduleImpl cancel for doctorSchedule with id {}", doctorScheduleId);
+        Optional<DoctorSchedule> schedule = doctorScheduleRepo.findById(doctorScheduleId);
+        if(!schedule.isPresent()){
+            log.warn("Not found schedule with id {}" , doctorScheduleId);
+            throw new NotFoundException("Not found schedule with id " + doctorScheduleId);
+        }
+        schedule.get().setIsActive(false);
+        doctorScheduleRepo.save(schedule.get());
+    }
+
+    @Override
+    public void updateDoctorSchedule(Long doctorScheduleId, UpdateScheduleRequest request) {
+        log.info("Updating schedule with id {}",  doctorScheduleId);
+        Optional<DoctorSchedule> schedule = doctorScheduleRepo.findById(doctorScheduleId);
+        if(!schedule.isPresent()){
+            log.warn("Not found schedule with id {}" , doctorScheduleId);
+            throw new NotFoundException("Not found schedule with id " + doctorScheduleId);
+        }
+        schedule.get().setStartTime(request.getStartTime());
+        schedule.get().setEndTime(request.getEndTime());
+        schedule.get().setIsActive(true);
+        doctorScheduleRepo.save(schedule.get());
     }
 }
