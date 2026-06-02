@@ -8,6 +8,7 @@ import com.hospital.user.service.UserProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -33,11 +34,27 @@ public class UserProfileImpl implements UserProfileService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public UserProfileResponse getUserProfile(String firebaseUid) {
         UserProfile userProfile = userProfileRepo.findByFirebaseUid(firebaseUid)
                 .orElseThrow(() -> new com.hospital.user.exception.UserNotFoundException("User profile not found for firebaseUid: " + firebaseUid));
 
+        return UserProfileResponse.fromEntity(userProfile);
+    }
+
+    @Override
+    @Transactional
+    public UserProfileResponse updateProfile(String firebaseUid, com.hospital.user.dto.request.UpdateUserProfileRequest request) {
+        UserProfile userProfile = userProfileRepo.findByFirebaseUid(firebaseUid)
+                .orElseThrow(() -> new com.hospital.user.exception.UserNotFoundException("User profile not found for firebaseUid: " + firebaseUid));
+
+        if (request.getFullName() != null) userProfile.setFullName(request.getFullName());
+        if (request.getPhoneNumber() != null) userProfile.setPhoneNumber(request.getPhoneNumber());
+        if (request.getDateOfBirth() != null) userProfile.setDateOfBirth(request.getDateOfBirth());
+        if (request.getGender() != null) userProfile.setGender(request.getGender());
+        if (request.getAddress() != null) userProfile.setAddress(request.getAddress());
+
+        userProfileRepo.save(userProfile);
         return UserProfileResponse.fromEntity(userProfile);
     }
 }

@@ -8,6 +8,7 @@ import com.hospital.user.service.DoctorProfileService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -31,11 +32,26 @@ public class DoctorProfileImpl implements DoctorProfileService {
     }
 
     @Override
-    @org.springframework.transaction.annotation.Transactional(readOnly = true)
+    @Transactional(readOnly = true)
     public DoctorResponse getDoctorProfile(String firebaseUid) {
         DoctorProfile doctorProfile = doctorProfileRepo.findByFirebaseUid(firebaseUid)
                 .orElseThrow(() -> new com.hospital.user.exception.DoctorNotFoundException("Doctor profile not found for firebaseUid: " + firebaseUid));
 
+        return DoctorResponse.fromEntity(doctorProfile);
+    }
+
+    @Override
+    @Transactional
+    public DoctorResponse updateProfile(String firebaseUid, com.hospital.user.dto.request.UpdateDoctorProfileRequest request) {
+        DoctorProfile doctorProfile = doctorProfileRepo.findByFirebaseUid(firebaseUid)
+                .orElseThrow(() -> new com.hospital.user.exception.DoctorNotFoundException("Doctor profile not found for firebaseUid: " + firebaseUid));
+
+        if (request.getSpecialization() != null) doctorProfile.setSpecialization(request.getSpecialization());
+        if (request.getExperienceYears() != null) doctorProfile.setExperienceYears(request.getExperienceYears());
+        if (request.getBio() != null) doctorProfile.setBio(request.getBio());
+        if (request.getRoomId() != null) doctorProfile.setRoomId(request.getRoomId());
+
+        doctorProfileRepo.save(doctorProfile);
         return DoctorResponse.fromEntity(doctorProfile);
     }
 }
