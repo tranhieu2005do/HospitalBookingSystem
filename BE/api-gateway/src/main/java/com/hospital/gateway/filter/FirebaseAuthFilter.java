@@ -46,7 +46,7 @@ public class FirebaseAuthFilter implements GlobalFilter, Ordered {
 
     // Các route công khai không cần kiểm tra token
     private final List<String> publicPaths = List.of(
-             "/api/v1/auth/**"
+             "/api/v1/auth/register"
     );
 
     private boolean isPublicPath(String path) {
