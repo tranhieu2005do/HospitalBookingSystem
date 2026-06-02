@@ -10,4 +10,6 @@ public interface UserService {
     void setRoleAdmin(String firebaseUid, Role role);
 
     void deleteUser(String firebaseUid);
+
+    UserResponse registerUser(String email);
 }

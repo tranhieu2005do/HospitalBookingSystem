@@ -1,5 +1,7 @@
 package com.hospital.auth.service.impl;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.UserRecord;
 import com.hospital.auth.dto.request.CreateDoctorRequest;
 import com.hospital.auth.dto.response.UserResponse;
 import com.hospital.auth.entity.User;
@@ -121,5 +123,40 @@ public class UserServiceImpl implements UserService {
         log.info("Successfully deleted user with ID: {}", firebaseUid);
     }
 
+    @Override
+    @Transactional
+    public UserResponse registerUser(String email) {
+        log.info("Creating user with email: {}", email);
+        if (userRepository.existsByEmail(email)) {
+            log.warn("Email {} already exists in local database", email);
+            throw new DuplicateUserException("User with email " + email + " already exists in locally");
+        }
+
+        User newUser = User.builder()
+                .email(email)
+                .role(Role.PATIENT)
+                .status(UserStatus.ACTIVE)
+                .build();
+        try{
+        UserRecord firebaseUser = FirebaseAuth.getInstance().getUserByEmail(email);
+        if (firebaseUser == null) {
+            log.warn("User with email {} not found in firebase authentication", email);
+            throw  new NotFoundException("User with email " + email + " not found in firebase authentication");
+        }
+        newUser.setFirebaseUid(firebaseUser.getUid());
+        userRepository.save(newUser);
+        return UserResponse.builder()
+                .id(newUser.getId())
+                .firebaseUid(firebaseUser.getUid())
+                .email(newUser.getEmail())
+                .role(newUser.getRole())
+                .status(newUser.getStatus())
+                .build();
+        } catch(Exception e){
+            log.info("Executing compensation logic: Rolling back Firebase user email: {}", email);
+            firebaseService.deleteUser(email);
+            throw new  UserCreationException("Failed to create user", e);
+        }
+    }
 
 }

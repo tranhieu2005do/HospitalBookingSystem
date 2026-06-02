@@ -41,4 +41,11 @@ public class AuthController {
         return ResponseEntity.ok().build();
     }
 
+    @PostMapping("/register")
+    public ResponseEntity<UserResponse> registerUser(
+            @RequestParam String email
+    ){
+        return ResponseEntity.ok(userService.registerUser(email));
+    }
+
 }
