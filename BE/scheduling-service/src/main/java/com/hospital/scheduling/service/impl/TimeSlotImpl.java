@@ -26,7 +26,7 @@ public class TimeSlotImpl implements TimeSlotService {
     private final SlotHoldImpl slotHoldImpl;
 
     @Override
-    public void genTimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime, Long doctorId) {
+    public void genTimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime, String doctorId) {
 
         log.info("Generating slots for doctorId={}, date={}", doctorId, date);
 
@@ -65,7 +65,7 @@ public class TimeSlotImpl implements TimeSlotService {
     }
 
     @Override
-    public void reGenTimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime, Long doctorId) {
+    public void reGenTimeSlot(LocalDate date, LocalTime startTime, LocalTime endTime, String doctorId) {
         log.info("Regenerating slots for doctorId={}, date={}", doctorId, date);
         List<TimeSlot> slots = timeSlotRepo.findByDoctorIdAndDate(doctorId, date);
         List<TimeSlot> filtered = slots.stream()
@@ -97,7 +97,7 @@ public class TimeSlotImpl implements TimeSlotService {
     }
 
     @Override
-    public void pickSlot(Long timeSlotId, Long patientId) {
+    public void pickSlot(Long timeSlotId, String patientId) {
         log.info("Picking slot with id={}", timeSlotId);
         Optional<TimeSlot> optional = timeSlotRepo.findById(timeSlotId);
         if(!optional.isPresent()){

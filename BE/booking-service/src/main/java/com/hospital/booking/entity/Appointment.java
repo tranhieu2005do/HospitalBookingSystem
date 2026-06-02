@@ -23,11 +23,11 @@ public class Appointment extends BaseEntity {
     @Column(name = "booking_id", nullable = false)
     private Long bookingId;
 
-    @Column(name = "user_id", nullable = false)
-    private Long userId;
+    @Column(name = "user_id", nullable = false, length = 128)
+    private String userId;
 
-    @Column(name = "doctor_id", nullable = false)
-    private Long doctorId;
+    @Column(name = "doctor_id", nullable = false, length = 128)
+    private String doctorId;
 
     @Column(name = "service_id", nullable = false)
     private Long serviceId;

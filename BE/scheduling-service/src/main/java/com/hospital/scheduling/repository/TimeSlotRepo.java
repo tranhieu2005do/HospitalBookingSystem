@@ -10,5 +10,5 @@ import java.util.List;
 @Repository
 public interface TimeSlotRepo extends JpaRepository<TimeSlot,Long> {
 
-    List<TimeSlot> findByDoctorIdAndDate(Long doctorId, LocalDate date);
+    List<TimeSlot> findByDoctorIdAndDate(String doctorId, LocalDate date);
 }

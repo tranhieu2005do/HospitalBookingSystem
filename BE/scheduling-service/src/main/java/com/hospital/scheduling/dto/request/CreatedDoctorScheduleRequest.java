@@ -12,7 +12,7 @@ import java.time.LocalTime;
 public class CreatedDoctorScheduleRequest {
 
     @JsonProperty("doctor_id")
-    private Long doctorId;
+    private String doctorId;
 
     @JsonProperty("day_of_week")
     private String dayOfWeek;

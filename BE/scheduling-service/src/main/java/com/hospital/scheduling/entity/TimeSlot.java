@@ -24,7 +24,7 @@ public class TimeSlot extends BaseEntity {
     private Long id;
 
     @Column(name = "doctor_id", nullable = false, length = 128)
-    private Long doctorId;
+    private String doctorId;
 
     @Column(name = "date", nullable = false)
     private LocalDate date;
