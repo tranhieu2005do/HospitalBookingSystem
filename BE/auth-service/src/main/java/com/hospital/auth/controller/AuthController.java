@@ -1,6 +1,7 @@
 package com.hospital.auth.controller;
 
 import com.hospital.auth.dto.request.CreateDoctorRequest;
+import com.hospital.auth.dto.request.RegisterRequest;
 import com.hospital.auth.dto.response.UserResponse;
 import com.hospital.auth.entity.enums.Role;
 import com.hospital.auth.service.FirebaseService;
@@ -43,9 +44,9 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<UserResponse> registerUser(
-            @RequestParam String email
-    ){
-        return ResponseEntity.ok(userService.registerUser(email));
+            @RequestBody @Valid RegisterRequest request
+            ){
+        return ResponseEntity.ok(userService.registerUser(request));
     }
 
 }
